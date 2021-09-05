@@ -5,16 +5,22 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "nodemon server.js",
     "lint": "next lint"
   },
   "dependencies": {
+    "@keyv/redis": "^2.1.2",
+    "cacheable-response": "^2.7.3",
+    "express": "^4.17.1",
+    "keyv": "^4.0.3",
     "next": "11.1.1",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "redis": "^3.1.2"
   },
   "devDependencies": {
     "eslint": "7.32.0",
-    "eslint-config-next": "11.1.1"
+    "eslint-config-next": "11.1.1",
+    "nodemon": "^2.0.12"
   }
 }

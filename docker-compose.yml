@@ -1,0 +1,30 @@
+version: '3'
+services:
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+  redis-admin:
+    image: erikdubbelboer/phpredisadmin
+    ports:
+      - 8085:80
+    depends_on:
+      - redis
+    environment:
+      REDIS_1_HOST: redis
+      REDIS_1_NAME: redis
+      REDIS_1_PORT: 6379
+#  app:
+#    stdin_open: true
+#    restart: always
+#    build:
+#      dockerfile: Dockerfile
+#      context: ./
+#    volumes:
+#      - ./:/app
+#    ports:
+#    - 3000:3000
+#    environment:
+#      REDIS_HOST: 'redis:6379'
+#    depends_on:
+#      - redis
