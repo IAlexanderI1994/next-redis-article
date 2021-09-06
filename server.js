@@ -9,8 +9,6 @@ const next = require('next')
 const app = next({ dev: false })
 const handle = app.getRequestHandler()
 
-const dataJsonPattern = /_next\/data\/.+\.json$/
-
 
 const getJsonKey = (req) =>
   req.path
@@ -50,7 +48,6 @@ async function jsonCache(req, res) {
 
   const rawResEnd = res.end
   const rawResWrite = res.write
-  const rawResWriteHead = res.writeHead
   const chunks = []
 
   const proxyWrite = new Proxy(res.write, {
@@ -59,13 +56,8 @@ async function jsonCache(req, res) {
       chunks.push(chunk)
     }
   })
-  const proxyWriteHead = new Proxy(res.writeHead, {
-    apply(target, thisArg, args) {
-    }
-  })
 
   res.write = proxyWrite
-  res.writeHead = proxyWriteHead
 
   const data = await new Promise(async (resolve) => {
     res.end = () => {
@@ -78,13 +70,12 @@ async function jsonCache(req, res) {
   })
 
   res.write = rawResWrite
-  res.writeHead = rawResWriteHead
   res.end = rawResEnd
   const response = Buffer.concat(data)
 
   if ( res.statusCode === 200 && data ) client.set(key, JSON.stringify(response))
 
-  return res.send(response)
+  return res.headersSent ? res.end(response) : res.send(response)
 }
 
 async function ssrCache(req, res) {
