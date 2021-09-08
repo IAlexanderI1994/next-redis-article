@@ -1,6 +1,9 @@
 const express = require('express')
-
 const next = require('next')
+const { promisify } = require('util')
+
+const client = redis.createClient('redis://localhost:6379')
+client.get = promisify(client.get)
 
 const app = next({ dev: false })
 const handle = app.getRequestHandler()

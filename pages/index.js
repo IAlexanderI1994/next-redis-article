@@ -2,6 +2,7 @@ import styles from '../styles/Home.module.css'
 import Link from "next/link"
 
 export const getServerSideProps = async ({ params }) => {
+  console.log('MAIN')
   return {
     props: {
       test: 'main'

@@ -1,4 +1,6 @@
 const express = require('express')
+const {gzip} = require('node-gzip');
+
 const redis = require('redis')
 const { promisify } = require('util')
 
@@ -42,6 +44,7 @@ async function jsonCache(req, res) {
       }
       return v
     })
+
     Object.entries(headersToWrite).forEach(([ key, value ]) => res.setHeader(key, value))
     return res.send(buffer)
   }
@@ -52,7 +55,7 @@ async function jsonCache(req, res) {
 
   const proxyWrite = new Proxy(res.write, {
     apply(target, thisArg, args) {
-      const chunk = Buffer.from(args[ 0 ], 'base64')
+      const chunk = Buffer.from(args[ 0 ])
       chunks.push(chunk)
     }
   })
@@ -60,8 +63,8 @@ async function jsonCache(req, res) {
   res.write = proxyWrite
 
   const data = await new Promise(async (resolve) => {
-    res.end = () => {
-      resolve(chunks)
+    res.end = async (res) => {
+      resolve(res || chunks)
     }
     await app.render(req, res, req.path, {
       ...req.query,
@@ -71,11 +74,14 @@ async function jsonCache(req, res) {
 
   res.write = rawResWrite
   res.end = rawResEnd
-  const response = Buffer.concat(data)
 
-  if ( res.statusCode === 200 && data ) client.set(key, JSON.stringify(response))
+  const isChunked = Array.isArray(data)
+  const response = isChunked ?  Buffer.concat(data) : (Buffer.from(data))
+  const serializedResponse = isChunked ? JSON.stringify(response) : (JSON.stringify(await gzip(response)))
 
-  return res.headersSent ? res.end(response) : res.send(response)
+  if ( res.statusCode === 200 && data ) client.set(key, serializedResponse)
+
+  return res.end(response)
 }
 
 async function ssrCache(req, res) {
@@ -108,6 +114,7 @@ app.prepare().then(() => {
 
     return ssrCache(req, res)
   })
+
   server.get('/_next/data/*', async (req, res) => {
     return jsonCache(req, res)
   })
