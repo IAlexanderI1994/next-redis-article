@@ -1,6 +1,7 @@
 const express = require('express')
 const next = require('next')
 const { promisify } = require('util')
+const {gzip} = require('node-gzip');
 
 const client = redis.createClient('redis://localhost:6379')
 client.get = promisify(client.get)

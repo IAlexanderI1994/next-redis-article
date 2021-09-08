@@ -1,6 +1,5 @@
 const express = require('express')
 const {gzip} = require('node-gzip');
-
 const redis = require('redis')
 const { promisify } = require('util')
 
